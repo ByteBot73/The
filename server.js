@@ -143,7 +143,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory
 // We'll place our HTML files in this directory
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(__dirname, 'public'), { index: 'signup.html' }));
 
 // Set up the database connection
 // IMPORTANT: Replace 'mongodb://localhost:27017/user_auth_db' with your MongoDB connection string
