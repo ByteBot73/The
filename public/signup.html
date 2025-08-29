@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up / Log In</title>
+    <!-- Use Tailwind CSS for styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* Custom styles for the pop-out notification */
+        .notification-popout {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 100;
+            transition: all 0.5s ease-in-out;
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(20px);
+        }
+
+        .notification-popout.show {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen bg-gray-900 text-gray-100 transition-colors duration-500">
+
+    <!-- Pop-out Notification Container -->
+    <div id="notification-popout" class="notification-popout w-full max-w-sm p-4 rounded-lg shadow-lg">
+        <p id="notification-message"></p>
+    </div>
+
+    <div class="w-full max-w-md p-8 space-y-8 bg-gray-800 rounded-2xl shadow-2xl border border-gray-700 transform transition-transform duration-500 hover:scale-105">
+        <div class="text-center">
+            <h2 class="mt-6 text-3xl font-extrabold text-gray-100 transition-colors duration-300">
+                Create your account
+            </h2>
+            <p class="mt-2 text-sm text-gray-400">
+                Join the community.
+            </p>
+        </div>
+        <form id="auth-form" class="mt-8 space-y-6">
+            <input type="hidden" name="action" value="signup">
+            <div class="rounded-lg shadow-sm -space-y-px">
+                <div>
+                    <label for="username" class="sr-only">Username</label>
+                    <input id="username" name="username" type="text" autocomplete="username" required
+                        class="relative block w-full px-4 py-3 border border-gray-700 bg-gray-700 text-gray-200 placeholder-gray-500 rounded-t-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm transition-all duration-300"
+                        placeholder="Username">
+                </div>
+                <div>
+                    <label for="password" class="sr-only">Password</label>
+                    <input id="password" name="password" type="password" autocomplete="new-password" required
+                        class="relative block w-full px-4 py-3 border border-gray-700 bg-gray-700 text-gray-200 placeholder-gray-500 rounded-b-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent sm:text-sm mt-3 transition-all duration-300"
+                        placeholder="Password">
+                </div>
+            </div>
+
+            <div>
+                <button type="submit"
+                    class="group relative w-full flex justify-center py-3 px-4 border border-transparent text-sm font-medium rounded-lg text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-300">
+                    Sign Up
+                </button>
+            </div>
+            <div class="text-center">
+                <a href="#" id="toggle-link" class="font-medium text-blue-400 hover:text-blue-500 transition-colors duration-300">
+                    Already have an account? Log in
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const form = document.getElementById('auth-form');
+            const toggleLink = document.getElementById('toggle-link');
+            const submitButton = form.querySelector('button');
+            
+            const notificationPopout = document.getElementById('notification-popout');
+            const notificationMessage = document.getElementById('notification-message');
+            
+            let isSignUp = true;
+
+            // Helper function to show pop-out notifications
+            function showNotification(message, type = 'error') {
+                notificationMessage.textContent = message;
+                
+                // Remove previous type classes
+                notificationPopout.classList.remove('bg-red-900', 'text-red-300', 'bg-green-900', 'text-green-300');
+                
+                // Add new type classes based on the response
+                if (type === 'success') {
+                    notificationPopout.classList.add('bg-green-900', 'text-green-300');
+                } else {
+                    notificationPopout.classList.add('bg-red-900', 'text-red-300');
+                }
+
+                // Show the notification with a smooth transition
+                notificationPopout.classList.add('show');
+                
+                // Automatically hide the notification after 3 seconds
+                setTimeout(() => {
+                    notificationPopout.classList.remove('show');
+                }, 3000);
+            }
+
+            // Toggle between Sign Up and Log In forms
+            toggleLink.addEventListener('click', (e) => {
+                e.preventDefault();
+                isSignUp = !isSignUp;
+                // clearMessage(); // No longer needed as messages auto-hide
+                if (isSignUp) {
+                    form.querySelector('input[name="action"]').value = 'signup';
+                    submitButton.textContent = 'Sign Up';
+                    toggleLink.textContent = 'Already have an account? Log in';
+                    document.querySelector('h2').textContent = 'Create your account';
+                } else {
+                    form.querySelector('input[name="action"]').value = 'login';
+                    submitButton.textContent = 'Log In';
+                    toggleLink.textContent = 'Don\'t have an account? Sign up';
+                    document.querySelector('h2').textContent = 'Log in to your account';
+                }
+            });
+
+            // Handle form submission
+            form.addEventListener('submit', async (e) => {
+                e.preventDefault();
+
+                const username = document.getElementById('username').value;
+                const password = document.getElementById('password').value;
+                const action = form.querySelector('input[name="action"]').value;
+
+                try {
+                    const response = await fetch(`/api/${action}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ username, password })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok) {
+                        showNotification(data.message, 'success');
+                        if (action === 'login' || action === 'signup') {
+                            // On successful login or signup, redirect to the dashboard after a short delay
+                            setTimeout(() => {
+                                window.location.href = '/dashboard';
+                            }, 500); // 500ms delay to let the notification show
+                        }
+                    } else {
+                        showNotification(data.message, 'error');
+                    }
+                } catch (error) {
+                    console.error('Error:', error);
+                    showNotification('Something went wrong. Please try again.', 'error');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
