@@ -143,11 +143,13 @@ app.use(express.urlencoded({ extended: true }));
 
 // Serve static files from the 'public' directory
 // We'll place our HTML files in this directory
+console.log('Serving static files from:', path.join(__dirname, 'public'));
 app.use(express.static(path.join(__dirname, 'public'), { index: 'signup.html' }));
 
 // Set up the database connection
 // IMPORTANT: Replace 'mongodb://localhost:27017/user_auth_db' with your MongoDB connection string
 const dbURI = 'mongodb+srv://georgeortman19_db_user:lPcV6yRWZCIsvyTJ@cluster0.8llntck.mongodb.net/';
+console.log('Attempting to connect to MongoDB at:', dbURI);
 mongoose.connect(dbURI)
     .then(() => console.log('MongoDB connected successfully'))
     .catch(err => console.error('MongoDB connection error:', err));
@@ -173,12 +175,14 @@ const User = mongoose.model('User', userSchema);
 
 // Route to handle user registration
 app.post('/api/signup', async (req, res) => {
+    console.log('Received signup request.');
     try {
         const { username, password } = req.body;
 
         // Check if the username already exists
         const existingUser = await User.findOne({ username });
         if (existingUser) {
+            console.log('Signup failed: Username already exists.');
             return res.status(409).json({ message: 'Username already exists' });
         }
 
@@ -193,6 +197,7 @@ app.post('/api/signup', async (req, res) => {
 
         // Save the new user to the database
         await newUser.save();
+        console.log('User registered successfully:', username);
 
         // Send a success response
         res.status(201).json({ message: 'User registered successfully' });
@@ -205,20 +210,24 @@ app.post('/api/signup', async (req, res) => {
 
 // Route to handle user login
 app.post('/api/login', async (req, res) => {
+    console.log('Received login request.');
     try {
         const { username, password } = req.body;
 
         // Find the user by username
         const user = await User.findOne({ username });
         if (!user) {
+            console.log('Login failed: Invalid username or password for user:', username);
             return res.status(401).json({ message: 'Invalid username or password' });
         }
 
         // Compare the provided password with the hashed password in the database
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
+            console.log('Login failed: Invalid password for user:', username);
             return res.status(401).json({ message: 'Invalid username or password' });
         }
+        console.log('Login successful for user:', username);
 
         // If the password matches, login is successful
         res.status(200).json({ message: 'Login successful' });
@@ -231,16 +240,19 @@ app.post('/api/login', async (req, res) => {
 
 // ---- New Route for the Homepage ----
 app.get('/', (req, res) => {
+    console.log('GET request to / received.');
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
 // Route to serve the signup page
 app.get('/signup', (req, res) => {
+    console.log('GET request to /signup received.');
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
 });
 
 // Route to serve the dashboard page
 app.get('/dashboard', (req, res) => {
+    console.log('GET request to /dashboard received.');
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
