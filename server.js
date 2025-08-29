@@ -238,14 +238,25 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ---- Catch-all route to serve the SPA ----
-// This route will serve the signup.html for any request not handled by the API routes above.
-app.get('*', (req, res) => {
-    console.log(`GET request to catch-all route received for: ${req.originalUrl}`);
+// Explicitly define the route for the homepage
+app.get('/', (req, res) => {
+    console.log('GET request to / received.');
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+// Explicitly define routes for other pages
+app.get('/signup', (req, res) => {
+    console.log('GET request to /signup received.');
+    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
+});
+
+app.get('/dashboard', (req, res) => {
+    console.log('GET request to /dashboard received.');
+    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
+    console.log('Process environment:', process.env.NODE_ENV);
 });
