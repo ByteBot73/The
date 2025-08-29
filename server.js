@@ -144,7 +144,7 @@ app.use(express.urlencoded({ extended: true }));
 // Serve static files from the 'public' directory
 // We'll place our HTML files in this directory
 console.log('Serving static files from:', path.join(__dirname, 'public'));
-app.use(express.static(path.join(__dirname, 'public'), { index: 'signup.html' }));
+app.use(express.static(path.join(__dirname, 'public')));
 
 // Set up the database connection
 // IMPORTANT: Replace 'mongodb://localhost:27017/user_auth_db' with your MongoDB connection string
@@ -238,28 +238,11 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
-// ---- New Route for the Homepage ----
-app.get('/', (req, res) => {
-    console.log('GET request to / received.');
+// ---- Catch-all route to serve the SPA ----
+// This route will serve the signup.html for any request not handled by the API routes above.
+app.get('*', (req, res) => {
+    console.log(`GET request to catch-all route received for: ${req.originalUrl}`);
     res.sendFile(path.join(__dirname, 'public', 'signup.html'));
-});
-
-// Route to serve the signup page
-app.get('/signup', (req, res) => {
-    console.log('GET request to /signup received.');
-    res.sendFile(path.join(__dirname, 'public', 'signup.html'));
-});
-
-// Route to serve the dashboard page
-app.get('/dashboard', (req, res) => {
-    console.log('GET request to /dashboard received.');
-    res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
-});
-
-// Catch-all route to handle 404 errors
-app.use((req, res, next) => {
-    console.log(`404 Not Found: Request for ${req.originalUrl} failed.`);
-    res.status(404).send('Not Found');
 });
 
 // Start the server
