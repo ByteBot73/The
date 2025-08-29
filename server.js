@@ -256,6 +256,12 @@ app.get('/dashboard', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'dashboard.html'));
 });
 
+// Catch-all route to handle 404 errors
+app.use((req, res, next) => {
+    console.log(`404 Not Found: Request for ${req.originalUrl} failed.`);
+    res.status(404).send('Not Found');
+});
+
 // Start the server
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
